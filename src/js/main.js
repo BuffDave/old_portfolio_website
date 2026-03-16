@@ -5,20 +5,28 @@ import '../scss/styles.scss'
 // Import all of Bootstrap's JS
 import * as bootstrap from 'bootstrap'
 
-// AOS Plugin
-AOS.init({
-  duration: 1200,
-});
-
-// Typed.js Animation
-setTimeout(function() {
-  var typed = new Typed(".js-text-animation", {
-    strings: ["Frontend Developer", "Video Content Creator", "I Miss You"],
-    typeSpeed: 60,
-    loop: true,
-    backSpeed: 25,
-    backDelay: 1500
+// AOS Plugin (guard in case CDN script fails to load)
+if (typeof window !== "undefined" && typeof window.AOS !== "undefined") {
+  window.AOS.init({
+    duration: 1200,
   });
+}
+
+// Typed.js Animation (guard in case CDN script fails to load)
+setTimeout(function() {
+  const hasTypingTarget = document.querySelector(".js-text-animation");
+
+  if (!hasTypingTarget) return;
+
+  if (typeof window !== "undefined" && typeof window.Typed !== "undefined") {
+    new window.Typed(".js-text-animation", {
+      strings: ["Frontend Developer", "Video Content Creator", "I Miss You"],
+      typeSpeed: 60,
+      loop: true,
+      backSpeed: 25,
+      backDelay: 1500
+    });
+  }
 }, 1500);
 
 // Popover Text

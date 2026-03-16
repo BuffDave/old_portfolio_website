@@ -1,0 +1,7 @@
+{
+  "host": "smtp.elasticemail.com",
+  "username": "YOUR_ELASTIC_EMAIL_ADDRESS",
+  "password": "YOUR_ELASTIC_EMAIL_SMTP_PASSWORD",
+  "to": "YOUR_DESTINATION_EMAIL",
+  "from": "YOUR_VERIFIED_SENDER_EMAIL"
+}

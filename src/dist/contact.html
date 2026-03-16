@@ -7,9 +7,9 @@
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <link rel="icon" href="/assets/favicon-uHJjGsbC.png" type="image/gif">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/7.2.0/mdb.min.css" rel="stylesheet"/>
-    <script type="module" crossorigin src="/assets/main-GqrNtI3B.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/main-C1TIs4_R.css">
-    <link rel="stylesheet" crossorigin href="/assets/contact-DnTYxJsR.css">
+    <script type="module" crossorigin src="/assets/main-DSg4eS3e.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/main-CSiryglt.css">
+    <link rel="stylesheet" crossorigin href="/assets/contact-CRAF3EIX.css">
   </head>
   <body>
     <!-- START HEADER -->
@@ -220,10 +220,46 @@
       const subject = document.getElementById("subject");
       const mess = document.getElementById("message");
       const submitButton = document.getElementById("submit");
-
       let isSending = false;
 
-      function sendEmail() {
+      async function loadSmtpConfig() {
+        try {
+          const response = await fetch("/contact.config.json", { cache: "no-store" });
+          if (!response.ok) return null;
+          return await response.json();
+        } catch (error) {
+          return null;
+        }
+      }
+
+      async function sendEmail() {
+        const smtpConfig = await loadSmtpConfig();
+
+        if (typeof window.Email === "undefined" || typeof window.Email.send !== "function") {
+          Swal.fire({
+            title: "Email service unavailable",
+            text: "Please refresh the page and try again.",
+            icon: "error"
+          });
+          isSending = false;
+          return;
+        }
+        if (
+          !smtpConfig ||
+          !smtpConfig.username ||
+          !smtpConfig.password ||
+          !smtpConfig.to ||
+          !smtpConfig.from
+        ) {
+          Swal.fire({
+            title: "SMTP config missing",
+            text: "Create src/public/contact.config.json using contact.config.example.json first.",
+            icon: "warning"
+          });
+          isSending = false;
+          return;
+        }
+
         const bodyMessage = `
   <html>
     <head>
@@ -263,30 +299,41 @@
   </html>
 `;
         Email.send({
-          Host : "smtp.elasticemail.com",
-          Username : "arinodavejoshua@gmail.com",
-          Password : "5D33160982924CB2C47A7EC87592DF6A5E8B",
-          To : 'arinodavejoshua@gmail.com',
-          From : 'arinodavejoshua@gmail.com',
+          Host : smtpConfig.host || "smtp.elasticemail.com",
+          Username : smtpConfig.username,
+          Password : smtpConfig.password,
+          To : smtpConfig.to,
+          From : smtpConfig.from,
           Subject : subject.value,
           Body : bodyMessage
-        }).then(
-          message => {
-            if (message === "OK") {
-              Swal.fire({
-                title: "Success!",
-                text: "Message sent successfully!",
-                icon: "success"
-              }).then((result) => {
-                if (result.isConfirmed) {
-                  location.reload();
-                }
-              });
-              form.reset();
-              isSending = false;
-            }
+        }).then((message) => {
+          if (message === "OK") {
+            Swal.fire({
+              title: "Success!",
+              text: "Message sent successfully!",
+              icon: "success"
+            }).then((result) => {
+              if (result.isConfirmed) {
+                location.reload();
+              }
+            });
+            form.reset();
+          } else {
+            Swal.fire({
+              title: "Message failed",
+              text: message || "Unable to send message.",
+              icon: "error"
+            });
           }
-        );
+          isSending = false;
+        }).catch(() => {
+          Swal.fire({
+            title: "Message failed",
+            text: "Unable to send message right now. Please try again later.",
+            icon: "error"
+          });
+          isSending = false;
+        });
       }
 
 form.addEventListener("submit", (e) => {
